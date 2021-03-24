@@ -1,42 +1,77 @@
-const router = require("express").Router();
+//express
+const router = require('express').Router();
+
+//db access
 const { checkUsernameExists, validateRoleName } = require('./auth-middleware');
-const { JWT_SECRET } = require("../secrets"); // use this secret!
+const { findBy, add } = require('../users/users-model')
 
-router.post("/register", validateRoleName, (req, res, next) => {
-  /**
-    [POST] /api/auth/register { "username": "anna", "password": "1234", "role_name": "angel" }
+//token stuff
+const { JWT_SECRET } = require('../secrets');
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
-    response:
-    status 201
-    {
-      "user"_id: 3,
-      "username": "anna",
-      "role_name": "angel"
+
+// /api/auth/register
+router.post("/register", validateRoleName, async (req, res, next) => {
+  try {
+    //credentials
+    const { username, password, role_name } = req.body
+    const user = await findBy({ username })
+
+    // save the user to the database
+    if (user) {
+      return res.status(409).json({ message: "User by that name already exists" })
     }
-   */
+    const newUser = await add({ username, password: bcrypt.hash(password, 8), role_name })
+    res.status(201).json(newUser)
+
+  } catch (err) {
+    next(err)
+  }
 });
 
+// /api/auth/login
+router.post("/login", checkUsernameExists, async (req, res, next) => {
+  try {
+    //credentials
+    const { username, password } = req.body
 
-router.post("/login", checkUsernameExists, (req, res, next) => {
-  /**
-    [POST] /api/auth/login { "username": "sue", "password": "1234" }
-
-    response:
-    status 200
-    {
-      "message": "sue is back!",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ETC.ETC"
+    //valid user
+    const user = await findBy({ username })
+    if (!user) {
+      return res.status(401).json({ message: "Cannot find a user by that username" })
     }
 
-    The token must expire in one day, and must provide the following information
-    in its payload:
-
-    {
-      "subject"  : 1       // the user_id of the authenticated user
-      "username" : "bob"   // the username of the authenticated user
-      "role_name": "admin" // the role of the authenticated user
+    //validate passwsord
+    const validPassword = await bcrypt.compare(password, user.password)
+    if (!validPassword) {
+      return res.status(401).json({ message: "Password incorrect" })
     }
-   */
+
+    //token
+    const token = buildToken(user)
+    res.cookie('token', token)
+
+    res.json({ message: `${user.username} is back!`, token: token })
+
+  } catch (err) {
+    next(err)
+  }
 });
+
+//build token
+function buildToken(user) {
+  const payload = {
+    subject: user.user_id,
+    username: user.username,
+    role_name: user.role_name,
+  }
+  const config = {
+    expiresIn: '1d',
+  }
+  return jwt.sign(
+    payload, JWT_SECRET, config
+  )
+}
 
 module.exports = router;
