@@ -41,10 +41,10 @@ Write the following user access functions inside `api/users/users-model.js`:
 
 Write the following auth middlewares inside `api/auth/auth-middleware.js`:
 
-- [ ] `restricted`
-- [ ] `only`
-- [ ] `checkUsernameExists`
-- [ ] `validateRoleName`
+- [X] `restricted`
+- [X] `only`
+- [X] `checkUsernameExists`
+- [X] `validateRoleName`
 
 #### 2C - Endpoints
 
@@ -52,13 +52,13 @@ Authentication will be implemented using JSON Web Tokens.
 
 Write the following endpoints inside `api/auth/auth-router.js`:
 
-- [ ] `[POST] /api/auth/register`
-- [ ] `[POST] /api/auth/login`
+- [X] `[POST] /api/auth/register`
+- [X] `[POST] /api/auth/login`
 
 The endpoints inside `api/users/users-router.js` are built already but check them out:
 
-- [ ] `[GET] /api/users` - only users with a valid token can access
-- [ ] `[POST] /api/auth/login` - only users with a role of 'admin' can access
+- [X] `[GET] /api/users` - only users with a valid token can access
+- [X] `[POST] /api/auth/login` - only users with a role of 'admin' can access
 
 #### 2D - Secrets File
 

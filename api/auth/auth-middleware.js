@@ -31,14 +31,14 @@ const checkUsernameExists = async (req, res, next) => {
   const user = await findBy(req.body.username)
 
   if (!user || user.length === 0) {
-    return res.status(401).json({ message: "Invalid credentials" })
+    res.status(401).json({ message: "Invalid credentials" })
   } else {
     next()
   }
 }
 
 const validateRoleName = (req, res, next) => {
-  const roleName = req.body.role_name.trim()
+  let roleName = req.body.role_name.trim()
 
   if (!roleName || roleName.length === 0) {
     req.role_name = 'student'
